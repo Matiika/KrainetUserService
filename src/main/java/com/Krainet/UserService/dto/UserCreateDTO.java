@@ -1,5 +1,6 @@
 package com.Krainet.UserService.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,11 +8,19 @@ import lombok.Setter;
 @Setter
 public class UserCreateDTO {
 
+    @Schema(example = "newuser")
     private String username;
-    private String password;
-    private String email;
-    private String firstName;
-    private String lastName;
 
+    @Schema(example = "user123")
+    private String password;
+
+    @Schema(example = "newuser@krainet.com")
+    private String email;
+
+    @Schema(example = "Alex")
+    private String firstName;
+
+    @Schema(example = "Smirnov")
+    private String lastName;
 
 }

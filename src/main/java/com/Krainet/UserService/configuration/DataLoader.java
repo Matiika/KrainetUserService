@@ -30,27 +30,27 @@ public class DataLoader implements CommandLineRunner {
 
         // Создаем администратора
         User admin = new User();
-        admin.setUsername("admin");
+        admin.setUsername("admin1");
         admin.setPassword(passwordEncoder.encode("admin123"));
-        admin.setEmail("admin@krainet.com");
+        admin.setEmail("admin1@krainet.com");
         admin.setFirstName("Admin");
         admin.setLastName("Root");
         admin.setRole("ADMIN");
         userRepository.save(admin);
 
         // Создаем тестовых пользователей
-        createUser("user1", "user123", "user1@krainet.com", "Ivan", "Petrov");
-        createUser("user2", "user123", "user2@krainet.com", "Olga", "Sidorova");
-        createUser("user3", "user123", "user3@krainet.com", "Dmitry", "Ivanov");
+        createUser("user2", "user123", "user2@krainet.com", "Ivan", "Petrov");
+        createUser("user3", "user123", "user3@krainet.com", "Olga", "Sidorova");
+        createUser("user4", "user123", "user4@krainet.com", "Dmitry", "Ivanov");
 
         System.out.println("Инициализация завершена. Создано пользователей: " + userRepository.count());
 
         // Выводим информацию для тестирования
         System.out.println("\n=== Данные для тестирования ===");
-        System.out.println("ADMIN: username=admin, password=admin123");
-        System.out.println("USER1: username=user1, password=user123");
+        System.out.println("ADMIN: username=admin1, password=admin123");
         System.out.println("USER2: username=user2, password=user123");
         System.out.println("USER3: username=user3, password=user123");
+        System.out.println("USER4: username=user4, password=user123");
     }
 
     private void createUser(String username, String password, String email, String firstName, String lastName) {

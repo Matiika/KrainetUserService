@@ -24,10 +24,10 @@ public class AuthController {
 
     @Operation(summary = "Получить токен доступа", description = "🔐 Логин и пароли пользователей\n\n" +
             "👤 Администратор:\n\n" +
-            "Логин: admin\n\n" +
+            "Логин: admin1\n\n" +
             "Пароль: admin123\n\n" +
             "👤 Пользователь:\n\n" +
-            "Логин: user1\n\n" +
+            "Логин: user2\n\n" +
             "Пароль: user123")
     @PostMapping("/login")
     public ResponseEntity<JwtResponse> login(@RequestBody JwtRequest jwtRequest) throws Exception {

@@ -1,12 +1,13 @@
 package com.Krainet.UserService.service;
 
-
 import com.Krainet.UserService.JWT.JwtRequest;
 import com.Krainet.UserService.JWT.JwtResponse;
 import com.Krainet.UserService.configuration.CustomUserDetailsService;
 import com.Krainet.UserService.configuration.JwtUtil;
 import com.Krainet.UserService.dto.UserCreateDTO;
 import com.Krainet.UserService.dto.UserDTO;
+import com.Krainet.UserService.exeption.EmailAlreadyExistsException;
+import com.Krainet.UserService.exeption.UserAlreadyExistsException;
 import com.Krainet.UserService.mapper.UserMapStructMapper;
 import com.Krainet.UserService.model.User;
 import com.Krainet.UserService.repository.UserRepository;
@@ -55,12 +56,12 @@ public class AuthService {
     public UserDTO register(UserCreateDTO userCreateDTO) {
         // Проверяем, существует ли пользователь с таким username
         if (userRepository.findByUsername(userCreateDTO.getUsername()).isPresent()) {
-            throw new RuntimeException("Пользователь с таким именем уже существует");
+            throw new UserAlreadyExistsException("Пользователь с именем '" + userCreateDTO.getUsername() + "' уже существует");
         }
 
         // Проверяем, существует ли пользователь с таким email
         if (userRepository.findByEmail(userCreateDTO.getEmail()).isPresent()) {
-            throw new RuntimeException("Пользователь с таким email уже существует");
+            throw new EmailAlreadyExistsException("Пользователь с email '" + userCreateDTO.getEmail() + "' уже существует");
         }
 
         User user = userMapStructMapper.fromCreateDTO(userCreateDTO);
@@ -80,5 +81,4 @@ public class AuthService {
             throw new Exception("INVALID_CREDENTIALS", e);
         }
     }
-
 }

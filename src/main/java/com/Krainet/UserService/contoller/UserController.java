@@ -3,11 +3,16 @@ package com.Krainet.UserService.contoller;
 import com.Krainet.UserService.dto.UserCreateDTO;
 import com.Krainet.UserService.dto.UserDTO;
 import com.Krainet.UserService.dto.UserUpdateDTO;
+import com.Krainet.UserService.exeption.EmailAlreadyExistsException;
+import com.Krainet.UserService.exeption.InvalidRoleException;
 import com.Krainet.UserService.exeption.ResourceNotFoundException;
+import com.Krainet.UserService.exeption.UserAlreadyExistsException;
 import com.Krainet.UserService.mapper.UserMapStructMapper;
 import com.Krainet.UserService.model.User;
 import com.Krainet.UserService.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +29,10 @@ import java.util.List;
         name = "User API",
         description = "🔐 Логин и пароли пользователей\n\n" +
                 "👤 Администратор:\n\n" +
-                "Логин: admin\n\n" +
+                "Логин: admin1\n\n" +
                 "Пароль: admin123\n\n" +
                 "👤 Пользователь:\n\n" +
-                "Логин: user1\n\n" +
+                "Логин: user2\n\n" +
                 "Пароль: user123"
 )
 @RestController
@@ -48,8 +53,17 @@ public class UserController {
     @PostMapping("/users")
     @ResponseStatus(HttpStatus.CREATED)
     public UserDTO create(@RequestBody UserCreateDTO userCreateDTO) {
-        User user = userMapStructMapper.fromCreateDTO(userCreateDTO);
+        // Проверяем, существует ли пользователь с таким username
+        if (userRepository.findByUsername(userCreateDTO.getUsername()).isPresent()) {
+            throw new UserAlreadyExistsException("Пользователь с именем '" + userCreateDTO.getUsername() + "' уже существует");
+        }
 
+        // Проверяем, существует ли пользователь с таким email
+        if (userRepository.findByEmail(userCreateDTO.getEmail()).isPresent()) {
+            throw new EmailAlreadyExistsException("Пользователь с email '" + userCreateDTO.getEmail() + "' уже существует");
+        }
+
+        User user = userMapStructMapper.fromCreateDTO(userCreateDTO);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         userRepository.save(user);
@@ -70,6 +84,9 @@ public class UserController {
     @GetMapping("/users/{id}")
     @PreAuthorize("@userSecurityService.canAccessUser(authentication, #id)")
     @ResponseStatus(HttpStatus.OK)
+    @Parameters({
+            @Parameter(name = "id", description = "ID пользователя", example = "2")
+    })
     public UserDTO show(@PathVariable Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id=" + id + " не найден"));
@@ -78,6 +95,9 @@ public class UserController {
 
     @PutMapping("/users/{id}")
     @PreAuthorize("@userSecurityService.canAccessUser(authentication, #id)")
+    @Parameters({
+            @Parameter(name = "id", description = "ID пользователя", example = "2")
+    })
     @ResponseStatus(HttpStatus.OK)
     public UserDTO update(
             @PathVariable Long id,
@@ -87,12 +107,25 @@ public class UserController {
         if (userUpdateDTO.getRole() != null &&
                 !userUpdateDTO.getRole().equals("USER") &&
                 !userUpdateDTO.getRole().equals("ADMIN")) {
-            throw new IllegalArgumentException("Роль должна быть USER или ADMIN");
+            throw new InvalidRoleException("Роль должна быть USER или ADMIN");
         }
-
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id=" + id + " не найден"));
+
+        // Проверяем уникальность username при обновлении
+        if (userUpdateDTO.getUsername() != null &&
+                !userUpdateDTO.getUsername().equals(user.getUsername()) &&
+                userRepository.findByUsername(userUpdateDTO.getUsername()).isPresent()) {
+            throw new UserAlreadyExistsException("Пользователь с именем '" + userUpdateDTO.getUsername() + "' уже существует");
+        }
+
+        // Проверяем уникальность email при обновлении
+        if (userUpdateDTO.getEmail() != null &&
+                !userUpdateDTO.getEmail().equals(user.getEmail()) &&
+                userRepository.findByEmail(userUpdateDTO.getEmail()).isPresent()) {
+            throw new EmailAlreadyExistsException("Пользователь с email '" + userUpdateDTO.getEmail() + "' уже существует");
+        }
 
         // Обычные пользователи не могут изменить свою роль
         if (!authentication.getAuthorities().stream()

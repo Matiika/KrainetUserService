@@ -32,7 +32,7 @@ public class UserSecurityService {
             return false;
         }
 
-        return user.getId().equals(userId.intValue());
+        return user.getId().equals(userId);
     }
 
 }
